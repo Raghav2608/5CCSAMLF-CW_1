@@ -1,8 +1,4 @@
 .venv
 CW1_train.csv
 CW1_test.csv
-output.png
 CW1_submission_K23098128.csv
-train_vs_test_accuracy.png
-train_vs_test_r2.png
-r2_v_rmse_.png

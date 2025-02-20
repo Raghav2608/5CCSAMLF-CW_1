@@ -15,6 +15,8 @@ class BaggedGradientBoosting:
         :param n: Number of GBT models
         :param sample_fraction: Fraction of data for each model
         :param gb_params: Hyperparameters for XGBRegressor
+        :param seed: Random seed for reproducibility
+        :param replace: Flag to sample with or without replacement 
         """
         
         self.n = n
@@ -85,3 +87,33 @@ class AdaptiveBaggingGBT:
         return weighted_preds
 
 
+class BaggedLGBM:
+    def __init__(self, n=10,sample_fraction=0.8,replace=True,seed=42, **gb_params):
+        """
+        :param n: Number of GBT models
+        :param sample_fraction: Fraction of data for each model
+        :param gb_params: Hyperparameters for XGBRegressor
+        :param seed: Random seed for reproducibility
+        :param replace: Flag to sample with or without replacement 
+        """
+        
+        self.n = n
+        self.sample_fraction = sample_fraction
+        self.models = [LGBMRegressor(**gb_params) for _ in range(n)]
+        self.replace = replace
+        np.random.seed = seed
+    
+    def fit(self, X, y):
+        self.samples = []
+        #number of samples to train on 
+        n_samples = int(self.sample_fraction * len(X))
+        
+        for model in self.models:
+            indices = np.random.choice(len(X), size=n_samples, replace=self.replace)
+            X_sample, y_sample = X[indices], y[indices]
+            self.samples.append((X_sample, y_sample))
+            model.fit(X_sample, y_sample)
+    
+    def predict(self, X):
+        preds = np.array([model.predict(X) for model in self.models])
+        return np.mean(preds, axis=0)  # Averaging predictions
